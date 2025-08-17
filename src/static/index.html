@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de OPME - Akos Med</title>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #2E8B57;
+            --primary-green-dark: #1F5F3F;
+            --primary-green-light: #4CAF50;
+            --accent-green: #66BB6A;
+            --background-light: #F8FDF9;
+            --background-white: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-gray: #666666;
+            --text-light: #999999;
+            --border-light: #E8F5E8;
+            --shadow-light: rgba(46, 139, 87, 0.1);
+            --shadow-medium: rgba(46, 139, 87, 0.15);
+            --success-green: #4CAF50;
+            --error-red: #F44336;
+            --warning-orange: #FF9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--background-light) 0%, #FFFFFF 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-medium);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-logo {
+            height: 90px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            transition: transform 0.3s ease;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.05);
+        }
+        
+        .header-text h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header-text p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+        
+        .card {
+            background: var(--background-white);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            border: 1px solid var(--border-light);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px var(--shadow-medium);
+        }
+        
+        .card h2 {
+            color: var(--primary-green);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary-green), var(--accent-green));
+            border-radius: 2px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+        
+        input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--background-white);
+        }
+
+        input[type="file"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+        }
+
+        input[type="file"]:hover, input[type="text"]:hover {
+            border-color: var(--accent-green);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary-green), var(--accent-green));
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(46, 139, 87, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 139, 87, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: var(--success-green);
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--success-green);
+            font-weight: 500;
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: var(--error-red);
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--error-red);
+            font-weight: 500;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-gray);
+            font-style: italic;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-light);
+            border-top: 2px solid var(--primary-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--background-white);
+        }
+        
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        th {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        tr:hover {
+            background: var(--background-light);
+        }
+
+        tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+        
+        .saldo-positivo {
+            color: var(--success-green);
+            font-weight: 600;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        
+        .saldo-negativo {
+            color: var(--error-red);
+            font-weight: 600;
+            background: rgba(244, 67, 54, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .results-header h3 {
+            color: var(--primary-green);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .results-count {
+            background: var(--primary-green);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-text h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <img src="/static/logo_akosmed.png" alt="Akos Med Logo" class="header-logo">
+                <div class="header-text">
+                    <h1>Sistema de Controle de OPME</h1>
+                    <p>Controle de Movimentação de Órteses, Próteses e Materiais Especiais</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📄 Importar XML de NF-e</h2>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="xmlFile">Selecione o arquivo XML:</label>
+                    <input type="file" id="xmlFile" accept=".xml" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit">Importar XML</button>
+                </div>
+            </form>
+            <div id="uploadMessage"></div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Consultar Saldo por Cliente</h2>
+            <div class="form-group">
+                <label for="cnpjCliente">CNPJ do Cliente (opcional):</label>
+                <input type="text" id="cnpjCliente" placeholder="Digite o CNPJ do cliente ou deixe em branco para todos">
+            </div>
+            <div class="button-group">
+                <button onclick="consultarSaldo()">Consultar Saldo</button>
+                <button onclick="consultarMovimentacoes()">Ver Movimentações</button>
+            </div>
+            
+            <div id="resultados"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('xmlFile');
+            const messageDiv = document.getElementById('uploadMessage');
+            
+            if (!fileInput.files[0]) {
+                messageDiv.innerHTML = '<div class="error">Por favor, selecione um arquivo XML.</div>';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                messageDiv.innerHTML = '<div class="loading">Processando XML...</div>';
+                
+                const response = await fetch('/api/upload_xml', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    messageDiv.innerHTML = '<div class="success">' + result.message + '</div>';
+                    fileInput.value = '';
+                } else {
+                    messageDiv.innerHTML = '<div class="error">' + result.error + '</div>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error">Erro ao processar arquivo: ' + error.message + '</div>';
+            }
+        });
+        
+        async function consultarSaldo() {
+            const cnpj = document.getElementById('cnpjCliente').value;
+            const resultadosDiv = document.getElementById('resultados');
+            
+            try {
+                resultadosDiv.innerHTML = '<div class="loading">Consultando saldo...</div>';
+                
+                const url = cnpj ? `/api/balance?cnpj_cliente=${encodeURIComponent(cnpj)}` : '/api/balance';
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.length === 0) {
+                        resultadosDiv.innerHTML = '<p>Nenhum saldo encontrado.</p>';
+                        return;
+                    }
+                    
+                    let html = '<div class="results-header">';
+                    html += '<h3>Saldo de Materiais</h3>';
+                    html += `<span class="results-count">${data.length} ${data.length === 1 ? 'item' : 'itens'}</span>`;
+                    html += '</div>';
+                    html += '<div class="table-container">';
+                    html += '<table>';
+                    html += '<tr><th>Cliente</th><th>Código</th><th>Produto</th><th>Lote</th><th>Saldo</th></tr>';
+                    
+                    data.forEach(item => {
+                        const saldoClass = item.saldo > 0 ? 'saldo-positivo' : (item.saldo < 0 ? 'saldo-negativo' : '');
+                        html += `<tr>
+                            <td>${item.nome_cliente}</td>
+                            <td>${item.codigo_produto}</td>
+                            <td>${item.descricao_produto}</td>
+                            <td>${item.lote}</td>
+                            <td><span class="${saldoClass}">${item.saldo}</span></td>
+                        </tr>`;
+                    });
+                    
+                    html += '</table></div>';
+                    resultadosDiv.innerHTML = html;
+                } else {
+                    resultadosDiv.innerHTML = '<div class="error">' + data.error + '</div>';
+                }
+            } catch (error) {
+                resultadosDiv.innerHTML = '<div class="error">Erro ao consultar saldo: ' + error.message + '</div>';
+            }
+        }
+        
+        async function consultarMovimentacoes() {
+            const cnpj = document.getElementById('cnpjCliente').value;
+            const resultadosDiv = document.getElementById('resultados');
+            
+            try {
+                resultadosDiv.innerHTML = '<div class="loading">Consultando movimentações...</div>';
+                
+                const url = cnpj ? `/api/movements?cnpj_cliente=${encodeURIComponent(cnpj)}` : '/api/movements';
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.length === 0) {
+                        resultadosDiv.innerHTML = '<p>Nenhuma movimentação encontrada.</p>';
+                        return;
+                    }
+                    
+                    let html = '<div class="results-header">';
+                    html += '<h3>Movimentações</h3>';
+                    html += `<span class="results-count">${data.length} ${data.length === 1 ? 'registro' : 'registros'}</span>`;
+                    html += '</div>';
+                    html += '<div class="table-container">';
+                    html += '<table>';
+                    html += '<tr><th>NF</th><th>Data</th><th>Cliente</th><th>Código</th><th>Produto</th><th>CFOP</th><th>Qtd</th><th>Lote</th></tr>';
+                    
+                    data.forEach(item => {
+                        html += `<tr>
+                            <td>${item.numero_nf}</td>
+                            <td>${item.data_emissao}</td>
+                            <td>${item.nome_cliente}</td>
+                            <td>${item.codigo_produto}</td>
+                            <td>${item.descricao_produto}</td>
+                            <td>${item.cfop}</td>
+                            <td>${item.quantidade}</td>
+                            <td>${item.lote || 'N/A'}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</table></div>';
+                    resultadosDiv.innerHTML = html;
+                } else {
+                    resultadosDiv.innerHTML = '<div class="error">' + data.error + '</div>';
+                }
+            } catch (error) {
+                resultadosDiv.innerHTML = '<div class="error">Erro ao consultar movimentações: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
+
