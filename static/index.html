@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de OPME - Akos Med</title>
-    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <!-- Alterado: caminho do favicon corrigido -->
+    <link rel="icon" href="favicon.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -382,7 +383,8 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <img src="/static/logo_akosmed.png" alt="Akos Med Logo" class="header-logo">
+                <!-- Alterado: caminho da logo corrigido -->
+                <img src="logo_akosmed.png" alt="Akos Med Logo" class="header-logo">
                 <div class="header-text">
                     <h1>Sistema de Controle de OPME</h1>
                     <p>Controle de Movimentação de Órteses, Próteses e Materiais Especiais</p>
@@ -437,7 +439,8 @@
             try {
                 messageDiv.innerHTML = '<div class="loading">Processando XML...</div>';
                 
-                const response = await fetch('/api/upload_xml', {
+                // Alterado: endpoint corrigido (sem / inicial)
+                const response = await fetch('api/upload_xml', {
                     method: 'POST',
                     body: formData
                 });
@@ -462,7 +465,8 @@
             try {
                 resultadosDiv.innerHTML = '<div class="loading">Consultando saldo...</div>';
                 
-                const url = cnpj ? `/api/balance?cnpj_cliente=${encodeURIComponent(cnpj)}` : '/api/balance';
+                // Alterado: endpoint corrigido (sem / inicial)
+                const url = cnpj ? `api/balance?cnpj_cliente=${encodeURIComponent(cnpj)}` : 'api/balance';
                 const response = await fetch(url);
                 const data = await response.json();
                 
@@ -503,12 +507,13 @@
         
         async function consultarMovimentacoes() {
             const cnpj = document.getElementById('cnpjCliente').value;
-            const resultadosDiv = document.getElementById('resultados');
+            const resultadosDiv = document.getElementById('resultados");
             
             try {
                 resultadosDiv.innerHTML = '<div class="loading">Consultando movimentações...</div>';
                 
-                const url = cnpj ? `/api/movements?cnpj_cliente=${encodeURIComponent(cnpj)}` : '/api/movements';
+                // Alterado: endpoint corrigido (sem / inicial)
+                const url = cnpj ? `api/movements?cnpj_cliente=${encodeURIComponent(cnpj)}` : 'api/movements';
                 const response = await fetch(url);
                 const data = await response.json();
                 
@@ -551,4 +556,3 @@
     </script>
 </body>
 </html>
-

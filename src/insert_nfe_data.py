@@ -1,5 +1,5 @@
 import sqlite3
-from .parse_nfe_xml import parse_nfe_xml
+from src.parse_nfe_xml import parse_nfe_xml
 
 def insert_nfe_data(xml_content, db_name="opme_control.db", is_file=True):
     if is_file:

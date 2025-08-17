@@ -1,1 +1,1 @@
-web: python -c "from src import main; main.app.run()"
+web: gunicorn src.main:app --workers 1 --bind 0.0.0.0:$PORT
