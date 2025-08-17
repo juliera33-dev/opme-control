@@ -7,7 +7,374 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ... (mantenha seu CSS existente) ... */
+        :root {
+            --primary: #0056b3;         /* Azul principal */
+            --primary-dark: #003d82;     /* Azul escuro */
+            --primary-light: #e6f0ff;    /* Azul claro */
+            --secondary: #28a745;        /* Verde */
+            --danger: #dc3545;           /* Vermelho */
+            --warning: #ffc107;          /* Amarelo */
+            --light: #f8f9fa;            /* Cinza claro */
+            --dark: #212529;             /* Preto/escuro */
+            --gray: #6c757d;             /* Cinza */
+            --border: #dee2e6;           /* Borda */
+            --success-light: #d4edda;    /* Verde claro */
+            --danger-light: #f8d7da;     /* Vermelho claro */
+            --info-light: #d1ecf1;       /* Azul claro */
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-logo {
+            height: 80px;
+            width: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-text {
+            flex: 1;
+        }
+        
+        .header-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-text p {
+            font-size: 16px;
+            font-weight: 300;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+        
+        /* Card Styles */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 25px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        
+        .card h2::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 15px;
+        }
+        
+        input[type="file"],
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input[type="file"] {
+            padding: 10px;
+            background: var(--light);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        /* Results Styles */
+        #uploadMessage, #resultados {
+            margin-top: 20px;
+            font-size: 15px;
+        }
+        
+        .loading, .success, .error {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .loading {
+            background: var(--info-light);
+            color: #0c5460;
+        }
+        
+        .success {
+            background: var(--success-light);
+            color: #155724;
+        }
+        
+        .error {
+            background: var(--danger-light);
+            color: #721c24;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .results-header h3 {
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .results-count {
+            background: var(--light);
+            color: var(--gray);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+        
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background-color: var(--light);
+            color: var(--primary);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: rgba(0, 86, 179, 0.03);
+        }
+        
+        .saldo-positivo {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        
+        .saldo-negativo {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+            font-style: italic;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-logo {
+                margin: 0 auto 15px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+        
+        /* Animation for loading */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .loading::before {
+            content: "";
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(12, 84, 96, 0.2);
+            border-top-color: #0c5460;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -22,32 +389,61 @@
             </div>
         </div>
         
-        <div class="card">
-            <h2>📄 Importar XML de NF-e</h2>
-            <form id="uploadForm">
+        <div class="card-container">
+            <div class="card">
+                <h2>📄 Importar XML de NF-e</h2>
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="xmlFile">Selecione o arquivo XML:</label>
+                        <input type="file" id="xmlFile" accept=".xml" required>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Importar XML
+                        </button>
+                    </div>
+                </form>
+                <div id="uploadMessage"></div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Consultar Saldo por Cliente</h2>
                 <div class="form-group">
-                    <label for="xmlFile">Selecione o arquivo XML:</label>
-                    <input type="file" id="xmlFile" accept=".xml" required>
+                    <label for="cnpjCliente">CNPJ do Cliente (opcional):</label>
+                    <input type="text" id="cnpjCliente" placeholder="Digite o CNPJ do cliente ou deixe em branco para todos">
                 </div>
                 <div class="button-group">
-                    <button type="submit">Importar XML</button>
+                    <button onclick="consultarSaldo()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 0-.5.5v11.793l-3.146-3.147a.5.5 0 0 0-.708.708l4 4a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0-.708-.708L5 13.293V1.5a.5.5 0 0 0-.5-.5z"/>
+                        </svg>
+                        Consultar Saldo
+                    </button>
+                    <button onclick="consultarMovimentacoes()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/>
+                        </svg>
+                        Ver Movimentações
+                    </button>
                 </div>
-            </form>
-            <div id="uploadMessage"></div>
+            </div>
         </div>
         
         <div class="card">
-            <h2>📊 Consultar Saldo por Cliente</h2>
-            <div class="form-group">
-                <label for="cnpjCliente">CNPJ do Cliente (opcional):</label>
-                <input type="text" id="cnpjCliente" placeholder="Digite o CNPJ do cliente ou deixe em branco para todos">
+            <div id="resultados">
+                <div class="no-results">
+                    <h3>Bem-vindo ao Sistema de Controle de OPME</h3>
+                    <p>Importe arquivos XML ou consulte saldos e movimentações para começar</p>
+                </div>
             </div>
-            <div class="button-group">
-                <button onclick="consultarSaldo()">Consultar Saldo</button>
-                <button onclick="consultarMovimentacoes()">Ver Movimentações</button>
-            </div>
-            
-            <div id="resultados"></div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Akos Med - Sistema de Controle de OPME | v1.0</p>
         </div>
     </div>
 
@@ -59,7 +455,7 @@
             const messageDiv = document.getElementById('uploadMessage');
             
             if (!fileInput.files[0]) {
-                messageDiv.innerHTML = '<div class="error">Por favor, selecione um arquivo XML.</div>';
+                messageDiv.innerHTML = '<div class="error">❌ Por favor, selecione um arquivo XML.</div>';
                 return;
             }
             
@@ -81,11 +477,11 @@
                 }
                 
                 const result = await response.json();
-                messageDiv.innerHTML = '<div class="success">' + result.message + '</div>';
+                messageDiv.innerHTML = '<div class="success">✅ ' + result.message + '</div>';
                 fileInput.value = '';
             } catch (error) {
                 console.error("Erro no upload:", error);
-                messageDiv.innerHTML = '<div class="error">Erro ao processar arquivo: ' + error.message + '</div>';
+                messageDiv.innerHTML = '<div class="error">❌ Erro ao processar arquivo: ' + error.message + '</div>';
             }
         });
         
@@ -97,7 +493,6 @@
                 resultadosDiv.innerHTML = '<div class="loading">Consultando saldo...</div>';
                 
                 const url = cnpj ? `api/balance?cnpj_cliente=${encodeURIComponent(cnpj)}` : 'api/balance';
-                console.log("URL do saldo:", url);
                 
                 const response = await fetch(url);
                 
@@ -108,10 +503,9 @@
                 }
                 
                 const data = await response.json();
-                console.log("Dados do saldo:", data);
                 
                 if (data.length === 0) {
-                    resultadosDiv.innerHTML = '<p>Nenhum saldo encontrado.</p>';
+                    resultadosDiv.innerHTML = '<div class="no-results"><p>Nenhum saldo encontrado para este CNPJ.</p></div>';
                     return;
                 }
                 
@@ -121,7 +515,8 @@
                 html += '</div>';
                 html += '<div class="table-container">';
                 html += '<table>';
-                html += '<tr><th>Cliente</th><th>Código</th><th>Produto</th><th>Lote</th><th>Saldo</th></tr>';
+                html += '<thead><tr><th>Cliente</th><th>Código</th><th>Produto</th><th>Lote</th><th>Saldo</th></tr></thead>';
+                html += '<tbody>';
                 
                 data.forEach(item => {
                     const saldoClass = item.saldo > 0 ? 'saldo-positivo' : (item.saldo < 0 ? 'saldo-negativo' : '');
@@ -129,16 +524,16 @@
                         <td>${item.nome_cliente}</td>
                         <td>${item.codigo_produto}</td>
                         <td>${item.descricao_produto}</td>
-                        <td>${item.lote}</td>
+                        <td>${item.lote || '-'}</td>
                         <td><span class="${saldoClass}">${item.saldo}</span></td>
                     </tr>`;
                 });
                 
-                html += '</table></div>';
+                html += '</tbody></table></div>';
                 resultadosDiv.innerHTML = html;
             } catch (error) {
                 console.error("Erro na consulta de saldo:", error);
-                resultadosDiv.innerHTML = '<div class="error">Erro ao consultar saldo: ' + error.message + '</div>';
+                resultadosDiv.innerHTML = '<div class="error">❌ Erro ao consultar saldo: ' + error.message + '</div>';
             }
         }
         
@@ -150,7 +545,6 @@
                 resultadosDiv.innerHTML = '<div class="loading">Consultando movimentações...</div>';
                 
                 const url = cnpj ? `api/movements?cnpj_cliente=${encodeURIComponent(cnpj)}` : 'api/movements';
-                console.log("URL das movimentações:", url);
                 
                 const response = await fetch(url);
                 
@@ -161,22 +555,23 @@
                 }
                 
                 const data = await response.json();
-                console.log("Dados das movimentações:", data);
                 
                 if (data.length === 0) {
-                    resultadosDiv.innerHTML = '<p>Nenhuma movimentação encontrada.</p>';
+                    resultadosDiv.innerHTML = '<div class="no-results"><p>Nenhuma movimentação encontrada para este CNPJ.</p></div>';
                     return;
                 }
                 
                 let html = '<div class="results-header">';
-                html += '<h3>Movimentações</h3>';
+                html += '<h3>Histórico de Movimentações</h3>';
                 html += `<span class="results-count">${data.length} ${data.length === 1 ? 'registro' : 'registros'}</span>`;
                 html += '</div>';
                 html += '<div class="table-container">';
                 html += '<table>';
-                html += '<tr><th>NF</th><th>Data</th><th>Cliente</th><th>Código</th><th>Produto</th><th>CFOP</th><th>Qtd</th><th>Lote</th></tr>';
+                html += '<thead><tr><th>NF</th><th>Data</th><th>Cliente</th><th>Código</th><th>Produto</th><th>CFOP</th><th>Qtd</th><th>Lote</th></tr></thead>';
+                html += '<tbody>';
                 
                 data.forEach(item => {
+                    const qtdClass = item.cfop.startsWith('5') ? 'saldo-positivo' : (item.cfop.startsWith('6') ? 'saldo-negativo' : '');
                     html += `<tr>
                         <td>${item.numero_nf}</td>
                         <td>${item.data_emissao}</td>
@@ -184,16 +579,16 @@
                         <td>${item.codigo_produto}</td>
                         <td>${item.descricao_produto}</td>
                         <td>${item.cfop}</td>
-                        <td>${item.quantidade}</td>
-                        <td>${item.lote || 'N/A'}</td>
+                        <td><span class="${qtdClass}">${item.quantidade}</span></td>
+                        <td>${item.lote || '-'}</td>
                     </tr>`;
                 });
                 
-                html += '</table></div>';
+                html += '</tbody></table></div>';
                 resultadosDiv.innerHTML = html;
             } catch (error) {
                 console.error("Erro na consulta de movimentações:", error);
-                resultadosDiv.innerHTML = '<div class="error">Erro ao consultar movimentações: ' + error.message + '</div>';
+                resultadosDiv.innerHTML = '<div class="error">❌ Erro ao consultar movimentações: ' + error.message + '</div>';
             }
         }
     </script>
