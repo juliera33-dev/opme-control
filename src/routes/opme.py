@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 import os
 from src.parse_nfe_xml import parse_nfe_xml
-from src.insert_nfe_data import insert_nfe_data
+from ..insert_nfe_data import insert_nfe_data
 from src.opme_logic import get_opme_movements, calculate_balance
 
 opme_bp = Blueprint('opme', __name__)
