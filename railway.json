@@ -1,0 +1,8 @@
+{
+  "build": {
+    "command": "pip install --upgrade pip && pip install -r requirements.txt"
+  },
+  "start": {
+    "command": "gunicorn src.main:app --bind 0.0.0.0:$PORT"
+  }
+}

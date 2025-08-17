@@ -1,1 +1,1 @@
-web: bash start.sh
+web: python -c "from src import main; main.app.run()"
