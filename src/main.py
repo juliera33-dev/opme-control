@@ -2,11 +2,12 @@ import os
 import sys
 from datetime import datetime, timedelta
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Garante que o diretório 'src' esteja no sys.path para importações relativas
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from src.extensions import db # Importação corrigida
+from src.extensions import db
 from src.services.xml_processor import XMLProcessor
 from src.services.estoque_service import EstoqueService
 from src.services.maino_api import MainoAPI
