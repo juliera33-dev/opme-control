@@ -5,12 +5,8 @@ from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
-# Usar imports relativos porque este módulo pertence ao pacote `src`
+# importa a instância única do SQLAlchemy (extensions.py)
 from .extensions import db
-from .services.xml_processor import XMLProcessor
-from .services.estoque_service import EstoqueService
-from .services.maino_api import MainoAPI
-from .models.nfe import NFeHeader, NFeItem, EstoqueConsignacao
 
 # Configuração do Flask
 app = Flask(__name__, static_folder='static')
@@ -20,20 +16,41 @@ app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 CORS(app)
 
 # Configuração do banco de dados
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f"sqlite:///database/app.db"
+# Usa DATABASE_URL se disponível (por ex. Postgres em produção). Caso contrário, usa SQLite em /app/database/app.db
+db_uri = os.environ.get('DATABASE_URL') or "sqlite:////app/database/app.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Se for sqlite com arquivo, garante que o diretório exista antes de conectar/criar tabelas
+if db_uri.startswith("sqlite"):
+    import re
+    m = re.match(r"sqlite:/*(.+)", db_uri)
+    if m:
+        # normaliza para caminho absoluto dentro do container
+        db_file = "/" + m.group(1).lstrip("/")
+        db_dir = os.path.dirname(db_file)
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except Exception:
+            app.logger.exception("Não foi possível criar diretório do banco de dados: %s", db_dir)
 
 # Inicializa o SQLAlchemy com a aplicação Flask
 db.init_app(app)
+
+# Cria as tabelas do banco de dados se não existirem (faz isso dentro do app_context)
+with app.app_context():
+    db.create_all()
+
+# Agora que o DB está inicializado, importe serviços e models
+from .services.xml_processor import XMLProcessor
+from .services.estoque_service import EstoqueService
+from .services.maino_api import MainoAPI
+from .models.nfe import NFeHeader, NFeItem, EstoqueConsignacao
 
 # Inicializa serviços
 xml_processor = XMLProcessor()
 estoque_service = EstoqueService()
 maino_api = MainoAPI()
-
-# Cria as tabelas do banco de dados se não existirem
-with app.app_context():
-    db.create_all()
 
 # Rotas da API
 @app.route('/api/processar-xml', methods=['POST'])
