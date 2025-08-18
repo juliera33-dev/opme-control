@@ -1,121 +1,131 @@
 import os
 import sys
-from pathlib import Path
-from flask import Flask, send_from_directory, jsonify
+from datetime import datetime, timedelta
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from src.extensions import db
+from src.services.xml_processor import XMLProcessor
+from src.services.estoque_service import EstoqueService
+from src.services.maino_api import MainoAPI
+from src.models.nfe import NFeHeader, NFeItem, EstoqueConsignacao # Importação corrigida
 
-# Configura caminhos absolutos
-BASE_DIR = Path(__file__).resolve().parent.parent
-SRC_DIR = Path(__file__).resolve().parent
-
-# Adiciona diretórios ao PATH
-sys.path.insert(0, str(SRC_DIR))
-sys.path.insert(0, str(BASE_DIR))
-
-# Correção para Windows
-if sys.platform.startswith('win'):
-    static_path = BASE_DIR / 'static'
-    if not static_path.exists():
-        static_path.mkdir(exist_ok=True)
-        print(f"Criada pasta static em: {static_path}")
-
-app = Flask(__name__, 
-            static_folder=str(BASE_DIR / 'static'),
-            static_url_path='')
+# Configuração do Flask
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui' # Mude para uma chave segura em produção
 
 # Habilita CORS para todas as rotas
 CORS(app)
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback_secret')
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
-
 # Configuração do banco de dados
-def get_database_uri():
-    if os.environ.get('FLASK_ENV') == 'production':
-        # FORCE uso de PostgreSQL em produção
-        db_url = os.environ['DATABASE_URL']
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
-        return db_url
-    else:
-        # SQLite apenas para desenvolvimento
-        db_dir = BASE_DIR / 'database'
-        db_dir.mkdir(exist_ok=True)
-        db_path = f"sqlite:///{db_dir / 'app.db'}"
-        print(f"Usando banco SQLite: {db_path}")
-        return db_path
-
-app.config['SQLALCHEMY_DATABASE_URI'] = get_database_uri()
+# Usa DATABASE_URL do ambiente (Railway) ou SQLite local
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Importações DEPOIS da configuração do app
-from models.user import db
-from models.nfe import NFeHeader  # IMPORTAÇÃO CRÍTICA
-# Importe todos os outros modelos aqui
-
-from routes.user import user_bp
-from routes.opme import opme_bp
-from routes.maino import maino_bp
-
-# Registra blueprints
-app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(opme_bp, url_prefix='/api')
-app.register_blueprint(maino_bp, url_prefix='/api')
-
-# Inicializa o banco de dados
 db.init_app(app)
 
-# Verificação e criação do banco
+# Inicializa serviços
+xml_processor = XMLProcessor()
+estoque_service = EstoqueService()
+maino_api = MainoAPI()
+
+# Cria as tabelas do banco de dados se não existirem
 with app.app_context():
+    db.create_all()
+
+# Rotas da API
+@app.route('/api/processar-xml', methods=['POST'])
+def processar_xml():
+    xml_content = request.json.get('xml_content')
+    if not xml_content:
+        return jsonify({'error': 'XML content is required'}), 400
+
     try:
-        db.create_all()
-        print("Tabelas do banco de dados criadas com sucesso!")
-        
-        # Verificação explícita da tabela problemática
-        if not db.engine.dialect.has_table(db.engine, 'nfe_header'):
-            print("AVISO: Tabela nfe_header não existe! Recriando banco...")
-            db.drop_all()
-            db.create_all()
-            print("Banco recriado forçadamente!")
+        nfe_data = xml_processor.parse_nfe_xml(xml_content)
+        estoque_service.process_nfe(nfe_data)
+        return jsonify({'message': 'XML processed successfully', 'nfe_data': nfe_data}), 200
     except Exception as e:
-        print(f"ERRO FATAL na criação do banco: {str(e)}")
-        # Tenta recriar como última instância
-        try:
-            db.drop_all()
-            db.create_all()
-            print("Banco recriado em modo de emergência!")
-        except Exception as e2:
-            print(f"FALHA CRÍTICA: {str(e2)}")
-            raise RuntimeError("Não foi possível inicializar o banco de dados")
+        return jsonify({'error': str(e)}), 500
 
-# Rotas para SPA corrigidas
-@app.route('/')
-def index():
-    return send_from_directory(app.static_folder, 'index.html')
+@app.route('/api/estoque/resumo', methods=['GET'])
+def get_estoque_resumo():
+    resumo = estoque_service.get_estoque_resumo()
+    return jsonify(resumo)
 
-@app.route('/static/<path:path>')
-def serve_static(path):
-    return send_from_directory(app.static_folder, path)
+@app.route('/api/estoque/por-produto/<string:codigo_produto>', methods=['GET'])
+def get_estoque_por_produto(codigo_produto):
+    estoque = estoque_service.get_estoque_por_produto(codigo_produto)
+    return jsonify(estoque)
 
-@app.route('/<path:path>')
-def serve_spa(path):
-    if not os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, 'index.html')
-    return send_from_directory(app.static_folder, path)
+@app.route('/api/estoque/por-cliente/<string:cnpj_cliente>', methods=['GET'])
+def get_estoque_por_cliente(cnpj_cliente):
+    estoque = estoque_service.get_estoque_por_cliente(cnpj_cliente)
+    return jsonify(estoque)
 
-# Verificação de permissões (Docker)
-def check_permissions():
-    if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
-        db_path = app.config['SQLALCHEMY_DATABASE_URI'].split('///')[1]
-        if os.path.exists(db_path):
+@app.route('/api/sincronizar-maino', methods=['POST'])
+def sincronizar_maino():
+    data = request.get_json()
+    dias_atras = data.get("dias_atras", 7)
+    
+    try:
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=dias_atras)
+        resultado_nfes = maino_api.get_nfes_emitidas(start_date, end_date)
+
+        if not resultado_nfes["sucesso"]:
+            return jsonify(resultado_nfes), 400
+        
+        nfes_para_processar = resultado_nfes["nfes"]
+        
+        xmls_processados = 0
+        nfes_saida = 0
+        nfes_entrada = 0
+        erros = []
+        
+        for nfe_item in nfes_para_processar:
+            chave_acesso = nfe_item.get("chaveAcesso")
+            if not chave_acesso:
+                erros.append(f"NF-e sem chave de acesso: {nfe_item.get("numero")}")
+                continue
+
+            resultado_xml_completo = maino_api.get_nfe_xml_by_chave(chave_acesso)
+            if not resultado_xml_completo["sucesso"]:
+                erros.append(f"Erro ao buscar XML da NF-e {chave_acesso}: {resultado_xml_completo["erro"]}")
+                continue
+            xml_content = resultado_xml_completo["xml_content"]
+
             try:
-                os.chmod(db_path, 0o666)
-                print(f"Permissões ajustadas para: {db_path}")
+                nfe_data = xml_processor.parse_nfe_xml(xml_content)
+                estoque_service.process_nfe(nfe_data)
+                xmls_processados += 1
+                if nfe_data['cfop'][0] == '5' or nfe_data['cfop'][0] == '6': # Simplificado para SAIDA
+                    nfes_saida += 1
+                else:
+                    nfes_entrada += 1
             except Exception as e:
-                print(f"AVISO: Não pude ajustar permissões: {str(e)}")
+                erros.append(f"Erro ao processar NF-e {chave_acesso}: {str(e)}")
+        
+        return jsonify({
+            "sucesso": True,
+            "nfes_encontradas": len(nfes_para_processar),
+            "nfes_processadas": xmls_processados,
+            "nfes_saida": nfes_saida,
+            "nfes_entrada": nfes_entrada,
+            "erros": erros
+        })
+        
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": f"Erro na sincronização: {e}"}), 500
+
+# Rota para servir arquivos estáticos (frontend)
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + "/" + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
-    check_permissions()
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('DEBUG', 'false').lower() == 'true'
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    app.run(debug=True, host='0.0.0.0')
