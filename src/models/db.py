@@ -1,2 +1,2 @@
-from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy()
+# Reexporta a instância única do SQLAlchemy definida em src/extensions.py
+from src.extensions import db
