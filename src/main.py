@@ -9,17 +9,17 @@ from flask_cors import CORS
 from .extensions import db
 
 # Configuração do Flask
-app = Flask(__name__, static_folder='static')
-app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
+app = Flask(__name__, static_folder=\'static\')
+app.config[\'SECRET_KEY\'] = \'sua_chave_secreta_aqui\'
 
 # Habilita CORS para todas as rotas
 CORS(app)
 
 # Configuração do banco de dados
 # Usa DATABASE_URL se disponível (por ex. Postgres em produção). Caso contrário, usa SQLite em /app/database/app.db
-db_uri = os.environ.get("DATABASE_URL") or "sqlite:///database/app.db"
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db_uri = os.environ.get(\'DATABASE_URL\') or "sqlite:////app/database/app.db"
+app.config[\'SQLALCHEMY_DATABASE_URI\'] = db_uri
+app.config[\'SQLALCHEMY_TRACK_MODIFICATIONS\'] = False
 
 # Se for sqlite com arquivo, garante que o diretório exista antes de conectar/criar tabelas
 if db_uri.startswith("sqlite"):
@@ -53,35 +53,35 @@ estoque_service = EstoqueService()
 maino_api = MainoAPI()
 
 # Rotas da API
-@app.route('/api/processar-xml', methods=['POST'])
+@app.route(\'/api/processar-xml\', methods=[\'POST\'])
 def processar_xml():
-    xml_content = request.json.get('xml_content')
+    xml_content = request.json.get(\'xml_content\')
     if not xml_content:
-        return jsonify({'error': 'XML content is required'}), 400
+        return jsonify({\'error\': \'XML content is required\'}), 400
 
     try:
         nfe_data = xml_processor.parse_nfe_xml(xml_content)
         estoque_service.process_nfe(nfe_data)
-        return jsonify({'message': 'XML processed successfully', 'nfe_data': nfe_data}), 200
+        return jsonify({\'message\': \'XML processed successfully\', \'nfe_data\': nfe_data}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({\'error\': str(e)}), 500
 
-@app.route('/api/estoque/resumo', methods=['GET'])
+@app.route(\'/api/estoque/resumo\', methods=[\'GET\'])
 def get_estoque_resumo():
     resumo = estoque_service.get_estoque_resumo()
     return jsonify(resumo)
 
-@app.route('/api/estoque/por-produto/<string:codigo_produto>', methods=['GET'])
+@app.route(\'/api/estoque/por-produto/<string:codigo_produto>\', methods=[\'GET\'])
 def get_estoque_por_produto(codigo_produto):
     estoque = estoque_service.get_estoque_por_produto(codigo_produto)
     return jsonify(estoque)
 
-@app.route('/api/estoque/por-cliente/<string:cnpj_cliente>', methods=['GET'])
+@app.route(\'/api/estoque/por-cliente/<string:cnpj_cliente>\', methods=[\'GET\'])
 def get_estoque_por_cliente(cnpj_cliente):
     estoque = estoque_service.get_estoque_por_cliente(cnpj_cliente)
     return jsonify(estoque)
 
-@app.route('/api/sincronizar-maino', methods=['POST'])
+@app.route(\'/api/sincronizar-maino\', methods=[\'POST\'])
 def sincronizar_maino():
     data = request.get_json()
     dias_atras = data.get("dias_atras", 7)
@@ -104,12 +104,12 @@ def sincronizar_maino():
         for nfe_item in nfes_para_processar:
             chave_acesso = nfe_item.get("chaveAcesso")
             if not chave_acesso:
-                erros.append(f"NF-e sem chave de acesso: {nfe_item.get('numero')}")
+                erros.append(f"NF-e sem chave de acesso: {nfe_item.get(\'numero\')}")
                 continue
 
             resultado_xml_completo = maino_api.get_nfe_xml_by_chave(chave_acesso)
             if not resultado_xml_completo["sucesso"]:
-                erros.append(f"Erro ao buscar XML da NF-e {chave_acesso}: {resultado_xml_completo['erro']}")
+                erros.append(f"Erro ao buscar XML da NF-e {chave_acesso}: {resultado_xml_completo[\'erro\']}")
                 continue
             xml_content = resultado_xml_completo["xml_content"]
 
@@ -117,7 +117,7 @@ def sincronizar_maino():
                 nfe_data = xml_processor.parse_nfe_xml(xml_content)
                 estoque_service.process_nfe(nfe_data)
                 xmls_processados += 1
-                if nfe_data['cfop'][0] == '5' or nfe_data['cfop'][0] == '6':
+                if nfe_data[\'cfop\'][0] == \'5\' or nfe_data[\'cfop\'][0] == \'6\':
                     nfes_saida += 1
                 else:
                     nfes_entrada += 1
@@ -137,16 +137,17 @@ def sincronizar_maino():
         return jsonify({"sucesso": False, "erro": f"Erro na sincronização: {e}"}), 500
 
 # Rota para servir arquivos estáticos (frontend)
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route(\'/\', defaults={\'path\': \'\'}) 
+@app.route(\'/<path:path>\') 
 def serve(path):
-    if path != "" and os.path.exists(os.path.join('static', path)):
-        return send_from_directory('static', path)
+    if path != "" and os.path.exists(os.path.join(\'static\', path)):
+        return send_from_directory(\'static\', path)
     else:
-        return send_from_directory('static', 'index.html')
+        return send_from_directory(\'static\', \'index.html\')
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+if __name__ == \'__main__\':
+    app.run(debug=True, host=\'0.0.0.0\')
+
 
 
 @app.route("/test")
