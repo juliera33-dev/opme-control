@@ -1,4 +1,4 @@
-from . import db
+from .db import db
 
 class NFeHeader(db.Model):
     __tablename__ = 'nfe_header'
@@ -22,3 +22,10 @@ class NFeItem(db.Model):
     vUnCom = db.Column(db.Float, nullable=False)
     nLote = db.Column(db.String(20))
     qLote = db.Column(db.Float)
+
+class EstoqueConsignacao(db.Model):
+    __tablename__ = 'estoque_consignacao'
+    id = db.Column(db.Integer, primary_key=True)
+    produto = db.Column(db.String(100), nullable=False)
+    quantidade = db.Column(db.Float, nullable=False, default=0.0)
+    nfe_item_id = db.Column(db.Integer, db.ForeignKey('nfe_item.id'))
