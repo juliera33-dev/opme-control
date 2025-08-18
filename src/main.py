@@ -6,11 +6,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from src.extensions import db
+from src.extensions import db # Importação corrigida
 from src.services.xml_processor import XMLProcessor
 from src.services.estoque_service import EstoqueService
 from src.services.maino_api import MainoAPI
-from src.models.nfe import NFeHeader, NFeItem, EstoqueConsignacao # Importação corrigida
+from src.models.nfe import NFeHeader, NFeItem, EstoqueConsignacao
 
 # Configuração do Flask
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
@@ -23,6 +23,8 @@ CORS(app)
 # Usa DATABASE_URL do ambiente (Railway) ou SQLite local
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inicializa o SQLAlchemy com a aplicação Flask
 db.init_app(app)
 
 # Inicializa serviços
