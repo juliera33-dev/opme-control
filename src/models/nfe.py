@@ -1,4 +1,4 @@
-from .db import db
+from ..extensions import db
 
 class NFeHeader(db.Model):
     __tablename__ = 'nfe_header'
