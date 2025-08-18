@@ -2,27 +2,23 @@ import os
 import sys
 from datetime import datetime, timedelta
 
-# Garante que o diretório 'src' esteja no sys.path para importações relativas
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
-
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from src.extensions import db
-from src.services.xml_processor import XMLProcessor
-from src.services.estoque_service import EstoqueService
-from src.services.maino_api import MainoAPI
-from src.models.nfe import NFeHeader, NFeItem, EstoqueConsignacao
+from extensions import db
+from services.xml_processor import XMLProcessor
+from services.estoque_service import EstoqueService
+from services.maino_api import MainoAPI
+from models.nfe import NFeHeader, NFeItem, EstoqueConsignacao
 
 # Configuração do Flask
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui' # Mude para uma chave segura em produção
+app = Flask(__name__, static_folder='static')
+app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 
 # Habilita CORS para todas as rotas
 CORS(app)
 
 # Configuração do banco de dados
-# Usa DATABASE_URL do ambiente (Railway) ou SQLite local
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f"sqlite:///database/app.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializa o SQLAlchemy com a aplicação Flask
@@ -89,12 +85,12 @@ def sincronizar_maino():
         for nfe_item in nfes_para_processar:
             chave_acesso = nfe_item.get("chaveAcesso")
             if not chave_acesso:
-                erros.append(f"NF-e sem chave de acesso: {nfe_item.get("numero")}")
+                erros.append(f"NF-e sem chave de acesso: {nfe_item.get('numero')}")
                 continue
 
             resultado_xml_completo = maino_api.get_nfe_xml_by_chave(chave_acesso)
             if not resultado_xml_completo["sucesso"]:
-                erros.append(f"Erro ao buscar XML da NF-e {chave_acesso}: {resultado_xml_completo["erro"]}")
+                erros.append(f"Erro ao buscar XML da NF-e {chave_acesso}: {resultado_xml_completo['erro']}")
                 continue
             xml_content = resultado_xml_completo["xml_content"]
 
@@ -102,7 +98,7 @@ def sincronizar_maino():
                 nfe_data = xml_processor.parse_nfe_xml(xml_content)
                 estoque_service.process_nfe(nfe_data)
                 xmls_processados += 1
-                if nfe_data['cfop'][0] == '5' or nfe_data['cfop'][0] == '6': # Simplificado para SAIDA
+                if nfe_data['cfop'][0] == '5' or nfe_data['cfop'][0] == '6':
                     nfes_saida += 1
                 else:
                     nfes_entrada += 1
@@ -125,10 +121,10 @@ def sincronizar_maino():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    if path != "" and os.path.exists(app.static_folder + "/" + path):
-        return send_from_directory(app.static_folder, path)
+    if path != "" and os.path.exists(os.path.join('static', path)):
+        return send_from_directory('static', path)
     else:
-        return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory('static', 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
