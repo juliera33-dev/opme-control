@@ -1,9 +1,9 @@
-from flask import Blueprint, request, jsonify, current_app
-from src.parse_nfe_xml import parse_nfe_xml
-from models import db, NFeHeader, NFeItem  # Importe todos os modelos necessários
+from flask import Blueprint, request, jsonify
 import logging
-from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
+from src.models import db, NFeHeader, NFeItem
+from src.utils.parse_nfe_xml import parse_nfe_xml
 
 opme_bp = Blueprint('opme', __name__)
 
@@ -87,7 +87,7 @@ def get_balance():
     try:
         cnpj_cliente = request.args.get('cnpj_cliente')
         
-        # Consulta usando ORM e SQLAlchemy
+        # Consulta usando ORM
         movements = db.session.query(
             NFeHeader.nNF,
             NFeHeader.dEmi,
@@ -103,7 +103,7 @@ def get_balance():
             NFeHeader.CNPJ_dest == cnpj_cliente
         ).all()
         
-        # Cálculo do saldo (exemplo simplificado)
+        # Cálculo do saldo
         balance = {}
         for mov in movements:
             key = (mov.CNPJ_dest, mov.xNome_dest, mov.cProd, mov.xProd, mov.nLote)
@@ -131,4 +131,43 @@ def get_balance():
         logging.exception("Erro ao calcular saldo")
         return jsonify({'error': f'Erro ao calcular saldo: {str(e)}'}), 500
 
-# Similar para get_movements usando ORM
+@opme_bp.route('/movements', methods=['GET'])
+def get_movements():
+    try:
+        cnpj_cliente = request.args.get('cnpj_cliente')
+        
+        movements = db.session.query(
+            NFeHeader.nNF,
+            NFeHeader.dEmi,
+            NFeHeader.CNPJ_dest,
+            NFeHeader.xNome_dest,
+            NFeItem.cProd,
+            NFeItem.xProd,
+            NFeItem.CFOP,
+            NFeItem.qCom,
+            NFeItem.nLote,
+            NFeItem.qLote
+        ).join(NFeItem).filter(
+            NFeHeader.CNPJ_dest == cnpj_cliente
+        ).all()
+        
+        movements_list = []
+        for mov in movements:
+            movements_list.append({
+                'numero_nf': mov.nNF,
+                'data_emissao': mov.dEmi.strftime('%Y-%m-%d'),
+                'cnpj_cliente': mov.CNPJ_dest,
+                'nome_cliente': mov.xNome_dest,
+                'codigo_produto': mov.cProd,
+                'descricao_produto': mov.xProd,
+                'cfop': mov.CFOP,
+                'quantidade': mov.qCom,
+                'lote': mov.nLote,
+                'quantidade_lote': mov.qLote
+            })
+        
+        return jsonify(movements_list), 200
+        
+    except Exception as e:
+        logging.exception("Erro ao obter movimentações")
+        return jsonify({'error': f'Erro ao obter movimentações: {str(e)}'}), 500
